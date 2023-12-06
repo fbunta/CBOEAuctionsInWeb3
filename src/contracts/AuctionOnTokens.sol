@@ -2,8 +2,10 @@
 pragma solidity ^0.8.4;
 
 import "https://github.com/fbunta/CBOEAuctionsInWeb3/blob/c4857c85dfccdef6cf8a7cdd09bb86131d1934d0/src/contracts/IssueCoin.sol";
+import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 
-contract CBOEPeriodicAuction {
+
+contract CBOEPeriodicAuction is VRFConsumerBase{
     address public exchange_admin;
     // Increments every auction
     int public auction_id;
@@ -19,6 +21,12 @@ contract CBOEPeriodicAuction {
     uint private auction_price;
     Order[] private sorted_sell_arr;
     Order[] private sorted_buy_arr;
+
+    //Chainlink VRF
+    bytes32 internal keyHash;
+    uint256 internal fee;
+    uint256 public randomResult;
+    //
 
     LW3Token[] public tokens;
 
@@ -232,10 +240,28 @@ contract CBOEPeriodicAuction {
         require(block.timestamp >= auction_start_time + setAuctionTimeRandom(), "Not enough time has passed");
         endAuction();
     }
-
+    /*
     function setAuctionTimeRandom() private pure returns(uint256) {
         // TODO(Neal) add randomness https://docs.chain.link/vrf/v2/best-practices
         return 65;
+    }
+    */
+    constructor(address vrfCoordinator, address linkToken, bytes32 _keyHash, uint256 _fee)
+        VRFConsumerBase(vrfCoordinator, linkToken) {
+        keyHash = _keyHash;
+        fee = _fee;
+        // Other initialization code
+    }
+
+    // Function to request a random number
+    function setAuctionTimeRandom() private returns (bytes32 requestId) {
+        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
+        return requestRandomness(keyHash, fee);
+    }
+
+    // Callback function called by Chainlink VRF service
+    function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
+        randomResult = randomness.mod(100); // Modify the range if needed
     }
 
     function isAuctionStart(Order memory ord) private view returns (bool) {
