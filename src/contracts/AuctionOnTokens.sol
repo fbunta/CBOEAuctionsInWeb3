@@ -157,12 +157,21 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         return order;
     }
 
-    constructor() {
+    constructor(address vrfCoordinator, address linkToken, bytes32 _keyHash, uint256 _fee) {
         accessTokens();
         exchange_admin = msg.sender;
         auction_id = 0;
         is_auction_live = false;
+
+        VRFConsumerBase(vrfCoordinator, linkToken) {
+          keyHash = _keyHash;
+          fee = _fee;
+          
+        }
     }
+
+
+
 
     modifier onlyAdmin() {
         require(msg.sender == exchange_admin, "Not the exchange admin");
@@ -246,12 +255,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         return 65;
     }
     */
-    constructor(address vrfCoordinator, address linkToken, bytes32 _keyHash, uint256 _fee)
-        VRFConsumerBase(vrfCoordinator, linkToken) {
-        keyHash = _keyHash;
-        fee = _fee;
-        // Other initialization code
-    }
+
 
     // Function to request a random number
     function setAuctionTimeRandom() private returns (bytes32 requestId) {
