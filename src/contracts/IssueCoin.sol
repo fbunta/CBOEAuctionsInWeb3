@@ -13,6 +13,6 @@ contract LW3Token is ERC20 {
     }
 
     function transfer(address from, address to, uint256 value) external {
-      _transfer(from, to, value);
+      _update(from, to, value * 10**decimals());
     }
 }
