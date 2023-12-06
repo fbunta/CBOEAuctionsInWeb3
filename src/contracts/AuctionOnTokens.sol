@@ -99,7 +99,7 @@ contract CBOEPeriodicAuction {
         uint filled_qty;
     }
 
-    function AuctionOrderFactory(address bidder, uint coin_int, uint bid_qty, uint offered_qty)
+    function auctionOrderFactory(address bidder, uint coin_int, uint bid_qty, uint offered_qty)
             private
             pure
             returns (Order memory)
@@ -124,7 +124,7 @@ contract CBOEPeriodicAuction {
         return order;
     }
 
-    function OrderFactory(address bidder, OrderType order_type, uint coin_int, uint bid_qty, uint offered_qty, bool hidden)
+    function orderFactory(address bidder, OrderType order_type, uint coin_int, uint bid_qty, uint offered_qty, bool hidden)
             private
             pure
             returns (Order memory)
@@ -180,29 +180,29 @@ contract CBOEPeriodicAuction {
     }
 
     // TODO make this payable and get rid of offered qty
-    function place_auction_order(address bidder, uint coin_int, uint bid_qty, uint offered_qty) public {
-        Order memory ord = AuctionOrderFactory(bidder, coin_int, bid_qty, offered_qty);
+    function placeAuctionOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty) public {
+        Order memory ord = auctionOrderFactory(bidder, coin_int, bid_qty, offered_qty);
         bool price_valid = auctionPriceValid(ord);
         if (!is_auction_live && price_valid) {
-            if (is_auction_start(ord)) {
-                add_order_to_orderbook(ord);
-                start_auction(ord.price);
+            if (isAuctionStart(ord)) {
+                addOrderToOrderbook(ord);
+                startAuction(ord.price);
             } else {
-                add_order_to_orderbook(ord);
+                addOrderToOrderbook(ord);
             }
         } // TODO add else logic for handling orders when an auction already live
         return;
     }
 
     // TODO make this payable and get rid of offered qty
-    function place_normal_order(address bidder, uint coin_int, uint bid_qty, uint offered_qty, bool hidden) public {
-        Order memory ord = OrderFactory(bidder, OrderType.Normal, coin_int, bid_qty, offered_qty, hidden);
-        add_order_to_orderbook(ord);
-        update_nbbo();
+    function placeNormalOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty, bool hidden) public {
+        Order memory ord = orderFactory(bidder, OrderType.Normal, coin_int, bid_qty, offered_qty, hidden);
+        addOrderToOrderbook(ord);
+        updateNBBO();
         return;
     }
 
-    function add_order_to_orderbook(Order memory ord) private {
+    function addOrderToOrderbook(Order memory ord) private {
         if (ord.side == Side.Sell) {
             sell_arr.push(ord);
         } else {
@@ -210,7 +210,7 @@ contract CBOEPeriodicAuction {
         }
     }
 
-    function update_nbbo() private {
+    function updateNBBO() private {
         uint local_best_bid = 0;
         uint local_best_offer = 9999999999999999;
         for (uint256 i = 0; i < buy_arr.length; i++) {
@@ -228,17 +228,17 @@ contract CBOEPeriodicAuction {
     }
 
     // TODO figure out a way this is not manually called
-    function manually_end_auction() public onlyAdmin() {
-        require(block.timestamp >= auction_start_time + set_auction_time_random(), "Not enough time has passed");
-        end_auction();
+    function manuallyEndAuction() public onlyAdmin() {
+        require(block.timestamp >= auction_start_time + setAuctionTimeRandom(), "Not enough time has passed");
+        endAuction();
     }
 
-    function set_auction_time_random() private pure returns(uint256) {
+    function setAuctionTimeRandom() private pure returns(uint256) {
         // TODO(Neal) add randomness https://docs.chain.link/vrf/v2/best-practices
         return 65;
     }
 
-    function is_auction_start(Order memory ord) private view returns (bool) {
+    function isAuctionStart(Order memory ord) private view returns (bool) {
         if (ord.side == Side.Sell) {
             for (uint256 i = 0; i < buy_arr.length; i++) {
                 if (buy_arr[i].price == ord.price && buy_arr[i].order_type == OrderType.AuctionOnly) {
@@ -257,14 +257,14 @@ contract CBOEPeriodicAuction {
         return false;
     }
 
-    function start_auction(uint price) private {
+    function startAuction(uint price) private {
         auction_start_time = block.timestamp;
         auction_id = auction_id += 1;
         is_auction_live = true;
         auction_price = price;
     }
 
-    function end_auction() private {
+    function endAuction() private {
         for (uint i = 0; i < buy_arr.length; i++) {
             if (buy_arr[i].price == auction_price){
                 if (buy_arr[i].order_type == OrderType.Normal) {
