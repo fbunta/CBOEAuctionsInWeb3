@@ -2,8 +2,8 @@
 pragma solidity ^0.8.4;
 
 import "https://github.com/fbunta/CBOEAuctionsInWeb3/blob/c4857c85dfccdef6cf8a7cdd09bb86131d1934d0/src/contracts/IssueCoin.sol";
-import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-
+//import "https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol"
 
 contract CBOEPeriodicAuction is VRFConsumerBase{
     address public exchange_admin;
