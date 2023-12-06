@@ -340,6 +340,13 @@ contract CBOEPeriodicAuction {
     }
 
     function pay_out_the_order(Order memory ord) private {
-        //implement
+        if (ord.side == Side.Buy) {
+            // Transfer tokens from contract to the bidder based on the order details
+            require(tokenContract.transfer(ord.bidder, ord.qty), "Token transfer failed");
+        } else {
+            // Transfer tokens from bidder to the contract based on the order details
+            // Assuming the bidder approved the contract to spend tokens before placing the order
+            require(tokenContract.transferFrom(ord.bidder, address(this), ord.qty), "Token transfer failed");
+        }
     }
 }
