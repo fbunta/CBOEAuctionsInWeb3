@@ -59,7 +59,7 @@ contract CBOEPeriodicAuction {
         if (dep.customer == address(0)) {
             revert("Account does not exist");
         } else if (dep.token_qtys[coin_int] < qty) {
-            revert("Insufficient balance")
+            revert("Insufficient balance");
         } else {
             dep.token_qtys[coin_int] -= qty;
             tokens[coin_int].transfer(address(this), msg.sender, qty);
@@ -84,11 +84,11 @@ contract CBOEPeriodicAuction {
         // AuctionEligible, // this isnt useful to have without a normal orderbook running too
         AuctionOnly
     }
-    
+
     function orderTypeEnumToInt(OrderType value) public pure returns (uint) {
         return uint(value);
     }
-    
+
     struct Order {
         address bidder;
         OrderType order_type;
@@ -102,7 +102,7 @@ contract CBOEPeriodicAuction {
     function AuctionOrderFactory(address bidder, uint coin_int, uint bid_qty, uint offered_qty)
             private
             pure
-            returns (Order memory) 
+            returns (Order memory)
     {
         Coin coin;
         if (coin_int == coinEnumToInt(Coin.BTC)) {
@@ -110,7 +110,7 @@ contract CBOEPeriodicAuction {
         } else if (coin_int == coinEnumToInt(Coin.ETH)) {
             coin = Coin.ETH;
         } else {
-            revert("Coin integers 1 and 2 are only allowed");
+            revert("Coin integers 0 and 1 are only allowed");
         }
         (uint price, uint qty, Side side) = get_order_attr(coin, bid_qty, offered_qty);
         Order memory order;
@@ -251,7 +251,7 @@ contract CBOEPeriodicAuction {
                 if (sell_arr[i].price == ord.price && sell_arr[i].order_type == OrderType.AuctionOnly) {
                     return true;
                 }
-            }  
+            }
             return false;
         }
         return false;
@@ -337,9 +337,9 @@ contract CBOEPeriodicAuction {
 
         }
     is_auction_live = false;
-    } 
-    
+    }
+
     function pay_out_the_order(Order memory ord) private {
         //implement
-    }    
+    }
 }
