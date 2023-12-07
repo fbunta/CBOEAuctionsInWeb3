@@ -97,6 +97,8 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         return uint(value);
     }
 
+    enum OrderStatus { Filled, Active};
+
     struct Order {
         address bidder;
         OrderType order_type;
@@ -105,6 +107,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         uint256 price;
         bool hidden;
         uint filled_qty;
+        OrderStatus status;
     }
 
     function auctionOrderFactory(address bidder, uint coin_int, uint bid_qty, uint offered_qty)
@@ -129,6 +132,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         order.price = price;
         order.hidden = false;
         order.filled_qty = 0;
+        order.status = OrderStatus.Active;
         return order;
     }
 
@@ -154,6 +158,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         order.price = price;
         order.hidden = hidden;
         order.filled_qty = 0;
+        order.status = OrderStatus.Active;
         return order;
     }
 
@@ -169,9 +174,6 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
           
         }
     }
-
-
-
 
     modifier onlyAdmin() {
         require(msg.sender == exchange_admin, "Not the exchange admin");
@@ -249,13 +251,6 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         require(block.timestamp >= auction_start_time + setAuctionTimeRandom(), "Not enough time has passed");
         endAuction();
     }
-    /*
-    function setAuctionTimeRandom() private pure returns(uint256) {
-        // TODO(Neal) add randomness https://docs.chain.link/vrf/v2/best-practices
-        return 65;
-    }
-    */
-
 
     // Function to request a random number
     function setAuctionTimeRandom() private returns (bytes32 requestId) {
@@ -358,25 +353,30 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
             sorted_sell_arr[i].filled_qty += min_qty;
             if (sorted_buy_arr[i].filled_qty == sorted_buy_arr[i].qty) {
                 pay_out_the_order(sorted_buy_arr[i]);
+                sorted_buy_arr[i].status = OrderStatus.Filled;
                 i++;
             }
             if(sorted_sell_arr[j].filled_qty == sorted_sell_arr[j].qty) {
                 pay_out_the_order(sorted_sell_arr[j]);
+                sorted_sell_arr[j].status = OrderStatus.Filled;
                 j++;
             }
-
         }
-    is_auction_live = false;
+        delete sorted_buy_arr;
+        delete sorted_sell_arr;
+        delete buy_arr;
+        delete sell_arr;
+        is_auction_live = false;
     }
 
     function pay_out_the_order(Order memory ord) private {
-        if (ord.side == Side.Buy) {
-            // Transfer tokens from contract to the bidder based on the order details
-            require(tokenContract.transfer(ord.bidder, ord.qty), "Token transfer failed");
+        Deposit storage dep = deposits[ord.bidder];
+        if (ord.Side == Side.Buy) {
+            deposits[ord.bidder].token_qtys[0] += ord.filled_qty; // BTC
+            deposits[ord.bidder].token_qtys[1] -= (ord.filled_qty * ord.price); // ETH
         } else {
-            // Transfer tokens from bidder to the contract based on the order details
-            // Assuming the bidder approved the contract to spend tokens before placing the order
-            require(tokenContract.transferFrom(ord.bidder, address(this), ord.qty), "Token transfer failed");
+            deposits[ord.bidder].token_qtys[0] -= ord.filled_qty; // BTC
+            deposits[ord.bidder].token_qtys[1] += (ord.filled_qty * ord.price); // ETH
         }
     }
 }
