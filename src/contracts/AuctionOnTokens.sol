@@ -34,7 +34,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         address customer;
         uint256[] token_qtys;
     }
-    mapping(address => Deposit) public deposits; // Deposits stored by user address
+    mapping(address => Deposit) private deposits; // Deposits stored by user address
 
     function accessTokens() internal {
         LW3Token BTC = LW3Token(0xCA613F4296b283e8d03844Ac17114a7A8018ce19);  // BTC is coin_int=0
@@ -198,8 +198,12 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         return (ord.side == Side.Buy && ord.price == best_bid) || (ord.side == Side.Sell && ord.price == best_offer);
     }
 
-    // TODO make this payable and get rid of offered qty
+    // TODO get rid of offered qty (optional)
     function placeAuctionOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty) public {
+        Deposit storage dep = deposits[bidder];
+        if (dep.customer == address(0) || dep.token_qtys[bidder] < offered_qty) {
+            revert("Insufficient fund")
+        }
         Order memory ord = auctionOrderFactory(bidder, coin_int, bid_qty, offered_qty);
         bool price_valid = auctionPriceValid(ord);
         if (!is_auction_live && price_valid) {
@@ -213,8 +217,12 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         return;
     }
 
-    // TODO make this payable and get rid of offered qty
+    // TODO get rid of offered qty (optional)
     function placeNormalOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty, bool hidden) public {
+        Deposit storage dep = deposits[bidder];
+        if (dep.customer == address(0) || dep.token_qtys[bidder] < offered_qty) {
+            revert("Insufficient fund")
+        }
         Order memory ord = orderFactory(bidder, OrderType.Normal, coin_int, bid_qty, offered_qty, hidden);
         addOrderToOrderbook(ord);
         updateNBBO();
