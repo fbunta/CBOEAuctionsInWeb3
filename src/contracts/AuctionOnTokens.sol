@@ -201,7 +201,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
     // TODO get rid of offered qty (optional)
     function placeAuctionOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty) public {
         Deposit storage dep = deposits[bidder];
-        if (dep.customer == address(0) || dep.token_qtys[bidder] < offered_qty) {
+        if (dep.customer == address(0) || dep.token_qtys[coin_int] < offered_qty) {
             revert("Insufficient fund")
         }
         Order memory ord = auctionOrderFactory(bidder, coin_int, bid_qty, offered_qty);
@@ -220,7 +220,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
     // TODO get rid of offered qty (optional)
     function placeNormalOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty, bool hidden) public {
         Deposit storage dep = deposits[bidder];
-        if (dep.customer == address(0) || dep.token_qtys[bidder] < offered_qty) {
+        if (dep.customer == address(0) || dep.token_qtys[coin_int] < offered_qty) {
             revert("Insufficient fund")
         }
         Order memory ord = orderFactory(bidder, OrderType.Normal, coin_int, bid_qty, offered_qty, hidden);
