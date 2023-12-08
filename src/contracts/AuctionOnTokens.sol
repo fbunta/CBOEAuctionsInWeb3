@@ -3,7 +3,7 @@ pragma solidity ^0.8.4;
 
 import "https://github.com/fbunta/CBOEAuctionsInWeb3/blob/c4857c85dfccdef6cf8a7cdd09bb86131d1934d0/src/contracts/IssueCoin.sol";
 //import "https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBase.sol";
 
 contract CBOEPeriodicAuction is VRFConsumerBase {
     address public exchange_admin;
@@ -161,17 +161,16 @@ contract CBOEPeriodicAuction is VRFConsumerBase {
         return order;
     }
 
-    constructor(address vrfCoordinator, address linkToken, bytes32 _keyHash, uint256 _fee) {
+    constructor(address vrfCoordinator, address linkToken, bytes32 _keyHash, uint256 _fee)VRFConsumerBase(vrfCoordinator, linkToken) {
         accessTokens();
         exchange_admin = msg.sender;
         auction_id = 0;
         is_auction_live = false;
 
-        VRFConsumerBase(vrfCoordinator, linkToken) {
-          keyHash = _keyHash;
-          fee = _fee;
-          
-        }
+
+        keyHash = _keyHash;
+        fee = _fee;
+
     }
 
     modifier onlyAdmin() {
