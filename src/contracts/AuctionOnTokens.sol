@@ -261,7 +261,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase {
         endAuction();
     }
 
-    // Function to request a random number
+    // Function to request a random number //change return to uint 256
     function setAuctionTimeRandom() private returns (uint256 uint_requestId) {
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
         return uint256(requestRandomness(keyHash, fee));
@@ -271,6 +271,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase {
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
         randomResult = randomness.mod(100); // Modify the range if needed
     }
+
 
     function isAuctionStart(Order memory ord) private view returns (bool) {
         if (ord.side == Side.Sell) {
