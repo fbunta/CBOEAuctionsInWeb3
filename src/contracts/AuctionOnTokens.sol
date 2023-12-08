@@ -3,9 +3,9 @@ pragma solidity ^0.8.4;
 
 import "https://github.com/fbunta/CBOEAuctionsInWeb3/blob/c4857c85dfccdef6cf8a7cdd09bb86131d1934d0/src/contracts/IssueCoin.sol";
 //import "https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol"
+import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 
-contract CBOEPeriodicAuction is VRFConsumerBase{
+contract CBOEPeriodicAuction is VRFConsumerBase {
     address public exchange_admin;
     // Increments every auction
     int public auction_id;
@@ -88,16 +88,15 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
         }
     }
 
-    enum OrderType {Normal,
-        // AuctionEligible, // this isnt useful to have without a normal orderbook running too
-        AuctionOnly
-    }
+    enum OrderType {Normal, AuctionOnly}
+    // AuctionEligible isnt useful to have without a normal orderbook running too
+
 
     function orderTypeEnumToInt(OrderType value) public pure returns (uint) {
         return uint(value);
     }
 
-    enum OrderStatus { Filled, Active};
+    enum OrderStatus {Filled, Active}
 
     struct Order {
         address bidder;
@@ -202,7 +201,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
     function placeAuctionOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty) public {
         Deposit storage dep = deposits[bidder];
         if (dep.customer == address(0) || dep.token_qtys[coin_int] < offered_qty) {
-            revert("Insufficient fund")
+            revert("Insufficient fund");
         }
         Order memory ord = auctionOrderFactory(bidder, coin_int, bid_qty, offered_qty);
         bool price_valid = auctionPriceValid(ord);
@@ -221,7 +220,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
     function placeNormalOrder(address bidder, uint coin_int, uint bid_qty, uint offered_qty, bool hidden) public {
         Deposit storage dep = deposits[bidder];
         if (dep.customer == address(0) || dep.token_qtys[coin_int] < offered_qty) {
-            revert("Insufficient fund")
+            revert("Insufficient fund");
         }
         Order memory ord = orderFactory(bidder, OrderType.Normal, coin_int, bid_qty, offered_qty, hidden);
         addOrderToOrderbook(ord);
@@ -379,7 +378,7 @@ contract CBOEPeriodicAuction is VRFConsumerBase{
 
     function pay_out_the_order(Order memory ord) private {
         Deposit storage dep = deposits[ord.bidder];
-        if (ord.Side == Side.Buy) {
+        if (ord.side == Side.Buy) {
             deposits[ord.bidder].token_qtys[0] += ord.filled_qty; // BTC
             deposits[ord.bidder].token_qtys[1] -= (ord.filled_qty * ord.price); // ETH
         } else {
