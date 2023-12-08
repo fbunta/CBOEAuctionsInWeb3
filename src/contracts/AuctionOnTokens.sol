@@ -4,8 +4,11 @@ pragma solidity ^0.8.4;
 import "https://github.com/fbunta/CBOEAuctionsInWeb3/blob/c4857c85dfccdef6cf8a7cdd09bb86131d1934d0/src/contracts/IssueCoin.sol";
 //import "https://github.com/smartcontractkit/chainlink/blob/develop/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBase.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract CBOEPeriodicAuction is VRFConsumerBase {
+    using SafeMath for uint256;
+
     address public exchange_admin;
     // Increments every auction
     int public auction_id;
@@ -259,9 +262,9 @@ contract CBOEPeriodicAuction is VRFConsumerBase {
     }
 
     // Function to request a random number
-    function setAuctionTimeRandom() private returns (bytes32 requestId) {
+    function setAuctionTimeRandom() private returns (uint256 uint_requestId) {
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
-        return requestRandomness(keyHash, fee);
+        return uint256(requestRandomness(keyHash, fee));
     }
 
     // Callback function called by Chainlink VRF service
